@@ -55,14 +55,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Buffer0_CurrentRippleTime: 0
+    - _BUFFER_COUNT: 4
+    - _Buffer0_CurrentRippleTime: 6
     - _Buffer0_IsEntering: 1
-    - _Buffer1_CurrentRippleTime: 0
-    - _Buffer1_IsEntering: 1
-    - _Buffer2_CurrentRippleTime: 0
+    - _Buffer1_CurrentRippleTime: 6
+    - _Buffer1_IsEntering: 0
+    - _Buffer2_CurrentRippleTime: 6
     - _Buffer2_IsEntering: 1
-    - _Buffer3_CurrentRippleTime: 0
-    - _Buffer3_IsEntering: 1
+    - _Buffer3_CurrentRippleTime: 6
+    - _Buffer3_IsEntering: 0
     - _BufferCount: 4
     - _Frequency: 3
     - _MaxInteractDistance: 15
@@ -74,8 +75,8 @@ Material:
     - _WavePropagationSpeed: 8
     - _WaveSpeed: 5
     m_Colors:
-    - _Buffer0_InteractPosition: {r: 0, g: 0, b: 0, a: 0}
-    - _Buffer1_InteractPosition: {r: 0, g: 0, b: 0, a: 0}
-    - _Buffer2_InteractPosition: {r: 0, g: 0, b: 0, a: 0}
-    - _Buffer3_InteractPosition: {r: 0, g: 0, b: 0, a: 0}
+    - _Buffer0_InteractPosition: {r: -7.5, g: 2.5, b: 0, a: 0}
+    - _Buffer1_InteractPosition: {r: 9.75, g: 3.25, b: 0, a: 0}
+    - _Buffer2_InteractPosition: {r: 0.75, g: 2, b: 0, a: 0}
+    - _Buffer3_InteractPosition: {r: -3, g: 3.5, b: 0, a: 0}
   m_BuildTextureStacks: []

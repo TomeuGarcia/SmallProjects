@@ -546,6 +546,7 @@ MonoBehaviour:
   _waterSharedMaterial: {fileID: 2100000, guid: 99586930f3d046944b5cc6a675d77d16,
     type: 2}
   _singleRippleWave: 0
+  _useSharedMateral: 1
   _interactableWater: {fileID: 971835261}
   _triggers:
   - {fileID: 1352625786}

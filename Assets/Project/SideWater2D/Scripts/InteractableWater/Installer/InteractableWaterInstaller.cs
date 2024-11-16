@@ -8,6 +8,7 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         [Header("CONFIGURATION")]
         [SerializeField] private Material _waterSharedMaterial;
         [SerializeField] private bool _singleRippleWave = true;
+        [SerializeField] private bool _useSharedMateral = true;
         
         [Header("REFERENCES")]
         [SerializeField] private InteractableWater _interactableWater;
@@ -23,7 +24,7 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         
         private void Awake()
         {
-            Material waterMaterial = _waterSharedMaterial;
+            Material waterMaterial = _useSharedMateral ? _waterSharedMaterial : new Material(_waterSharedMaterial);
             
             IWaterInteractionsController interactionsController = _singleRippleWave
                 ? MakeSingleWaterInteractionController(waterMaterial)
