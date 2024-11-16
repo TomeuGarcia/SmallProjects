@@ -414,11 +414,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 484788721}
+  - {fileID: 610705611}
   - {fileID: 1974035460}
   - {fileID: 1135420090}
   - {fileID: 1529692236}
-  - {fileID: 610705611}
+  - {fileID: 484788721}
   m_Father: {fileID: 1457382742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!210 &695631080
@@ -1031,6 +1031,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1543628416}
   - component: {fileID: 1543628419}
+  - component: {fileID: 1543628420}
   - component: {fileID: 1543628415}
   - component: {fileID: 1543628418}
   - component: {fileID: 1543628417}
@@ -1183,6 +1184,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3151c12f38a246a1afe34ad90e0c19b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1543628420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1543628414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e13e5e3633b476d9272342613c697b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _underWaterColor: {r: 0.49832684, g: 0.34042364, b: 0.8490566, a: 1}
+  _interactableWaterUser: {fileID: 1543628419}
+  _spriteRenderer: {fileID: 1543628415}
 --- !u!1 &1669947463
 GameObject:
   m_ObjectHideFlags: 0
@@ -1220,7 +1236,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c5c78a65707d9d049a900b94e577b89e, type: 2}
+  - {fileID: 2100000, guid: fc4095d6c28be304f897e8ef02c7d6c9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

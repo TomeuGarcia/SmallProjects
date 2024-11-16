@@ -22,6 +22,7 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         private const string PropertyBufferCount = "_BUFFER_COUNT";
         private const string BufferPrefix = "_Buffer";
         
+        
         private void Awake()
         {
             Material waterMaterial = _useSharedMateral ? _waterSharedMaterial : new Material(_waterSharedMaterial);
