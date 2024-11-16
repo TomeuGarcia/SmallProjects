@@ -487,6 +487,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 971835260}
+  - component: {fileID: 971835262}
   - component: {fileID: 971835261}
   m_Layer: 0
   m_Name: InteractableWater
@@ -530,6 +531,24 @@ MonoBehaviour:
   _width: 20
   _depth: 7
   _maxWaveAmplitude: 1.5
+--- !u!114 &971835262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 971835259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b8dc6f8c5994bb6b1999996d02c7e67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _waterSharedMaterial: {fileID: 2100000, guid: 99586930f3d046944b5cc6a675d77d16,
+    type: 2}
+  _singleRippleWave: 0
+  _interactableWater: {fileID: 971835261}
+  _triggers:
+  - {fileID: 1352625786}
 --- !u!1 &988298891
 GameObject:
   m_ObjectHideFlags: 0
@@ -836,7 +855,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1ddfabd1457451eb84c975f98653114, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interactableWater: {fileID: 971835261}
 --- !u!1 &1457382741
 GameObject:
   m_ObjectHideFlags: 0

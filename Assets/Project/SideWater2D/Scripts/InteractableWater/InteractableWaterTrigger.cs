@@ -1,16 +1,18 @@
-using System;
-using Project.Shared.Scripts.CollisionNotifiers;
 using UnityEngine;
 
 namespace Project.SideWater2D.Scripts.InteractableWater
 {
     public class InteractableWaterTrigger : MonoBehaviour
     {
-        [Header("COMPONENTS")] 
-        [SerializeField] private InteractableWater _interactableWater;
+        private IInteractableWater _interactableWater;
+        private Vector3 WaterNormal => _interactableWater.WaterSurface.up;
+        private Vector3 WaterSurfaceOrigin => _interactableWater.WaterSurface.position;
 
-        private Vector3 WaterNormal => _interactableWater.TopWaterTransform.up;
-        private Vector3 WaterSurfaceOrigin => _interactableWater.TopWaterTransform.position;
+
+        public void Init(IInteractableWater interactableWater)
+        {
+            _interactableWater = interactableWater;
+        }
 
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -34,7 +36,7 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         {
             if (user.CurrentlyUnderWater) return;
 
-            if (CheckUserComingFromOutside(user))
+            if (CheckUserIsOutsideWater(user))
             {
                 _interactableWater.StartEnterInteraction(user);
             }
@@ -44,14 +46,14 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         {
             if (!user.CurrentlyUnderWater) return;
 
-            if (CheckUserComingFromOutside(user))
+            if (CheckUserIsOutsideWater(user))
             {
                 _interactableWater.StartExitInteraction(user);
             }
         }
 
 
-        private bool CheckUserComingFromOutside(IInteractableWaterUser user)
+        private bool CheckUserIsOutsideWater(IInteractableWaterUser user)
         {
             Vector3 surfaceOriginToUserDirection = (user.WaterInteractPosition - WaterSurfaceOrigin).normalized;
             return Vector3.Dot(surfaceOriginToUserDirection, WaterNormal) > 0;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Project.SideWater2D.Scripts.InteractableWater
 {
-    public class InteractableWater : MonoBehaviour
+    public class InteractableWater : MonoBehaviour, IInteractableWater
     {
         [Header("COMPONENTS")]
         [SerializeField] private Renderer _topWaterRenderer;
@@ -15,9 +15,12 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         [SerializeField, Min(0)] private float _depth = 7f;
         [SerializeField, Min(0)] private float _maxWaveAmplitude = 1.5f;
 
+        private IWaterInteractionsController _interactionsController;
         private Material _waterSharedMaterial;
 
-        public Transform TopWaterTransform => _topWaterRenderer.transform;
+        private Transform TopWaterTransform => _topWaterRenderer.transform;
+        public Transform WaterSurface => TopWaterTransform;
+
 
 
         private void OnValidate()
@@ -25,10 +28,9 @@ namespace Project.SideWater2D.Scripts.InteractableWater
             ApplySizeCorrections();
         }
 
-        private void Awake()
+        private void OnDestroy()
         {
-            ApplySizeCorrections();
-            Init();
+            Cleanup();
         }
 
         private void ApplySizeCorrections()
@@ -45,53 +47,32 @@ namespace Project.SideWater2D.Scripts.InteractableWater
             _bottomWater.localPosition = bottomWaterPosition;
         }
 
-        private void Init()
+        public void Init(IWaterInteractionsController interactionsController, Material waterMaterial)
         {
-            _waterSharedMaterial = _topWaterRenderer.sharedMaterial;
-            _waterSharedMaterial.SetFloat( "_CurrentRippleTime", 0f);
+            _interactionsController = interactionsController;
+            ApplySizeCorrections();
+
+            _topWaterRenderer.material = waterMaterial;
         }
 
-        
-        
+        private void Cleanup()
+        {
+
+        }
+
+
         public void StartEnterInteraction(IInteractableWaterUser user)
         {
             user.CurrentlyUnderWater = true;
-            
-            _waterSharedMaterial.SetVector( "_InteractPosition", user.WaterInteractPosition);
-            _waterSharedMaterial.SetFloat( "_IsEntering", 1f);
-            
-            StopAllCoroutines();
-            StartCoroutine(PlayRipple());
+            _interactionsController.StartInteraction(user.WaterInteractPosition, true);
         }
 
         public void StartExitInteraction(IInteractableWaterUser user)
         {
             user.CurrentlyUnderWater = false;
-            
-            _waterSharedMaterial.SetVector( "_InteractPosition", user.WaterInteractPosition);
-            _waterSharedMaterial.SetFloat( "_IsEntering", 0f);
-
-            StopAllCoroutines();
-            StartCoroutine(PlayRipple());
+            _interactionsController.StartInteraction(user.WaterInteractPosition, false);
         }
 
-
-        private IEnumerator PlayRipple()
-        {
-            float rippleDuration = _waterSharedMaterial.GetFloat("_RippleDuration");
-            float rippleTime = 0f;
-            
-            while (rippleTime < rippleDuration)
-            {
-                _waterSharedMaterial.SetFloat( "_CurrentRippleTime", rippleTime);
-
-                rippleTime += Time.deltaTime;
-                yield return null;
-            }
-            
-            _waterSharedMaterial.SetFloat( "_CurrentRippleTime", rippleDuration);
-        }
-        
         
     }
 }

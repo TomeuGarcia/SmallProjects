@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Material_SideWater2D
+  m_Name: SingleWave_SideWater2D_Material
   m_Shader: {fileID: -6465566751694194690, guid: 1dc3c6022eaadaa49a8d8e0a250c6107,
     type: 3}
   m_Parent: {fileID: 0}
@@ -67,7 +67,8 @@ Material:
     - _RippleRampUpDuration: 0.5
     - _ShowAir: 0
     - _WaveFadeSharpness: 4
+    - _WavePropagationSpeed: 8
     - _WaveSpeed: 5
     m_Colors:
-    - _InteractPosition: {r: -0.25, g: 2.413568, b: 0, a: 0}
+    - _InteractPosition: {r: 5, g: 2.0433679, b: 0, a: 0}
   m_BuildTextureStacks: []
