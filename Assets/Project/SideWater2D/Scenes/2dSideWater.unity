@@ -1248,7 +1248,7 @@ MonoBehaviour:
     _maxSpeed: 40
     _acceleration: 500
     _startDeceleratingDistance: 1
-    _stopMovingDistance: 0.2
+    _stopMovingDistance: 0.1
   _requiredKey: 323
   _rigidbody: {fileID: 1543628418}
 --- !u!1 &1669947463
