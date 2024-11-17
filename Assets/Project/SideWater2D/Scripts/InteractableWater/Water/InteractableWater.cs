@@ -28,23 +28,20 @@ namespace Project.SideWater2D.Scripts.InteractableWater
             ApplySizeCorrections();
         }
 
-        private void OnDestroy()
-        {
-            Cleanup();
-        }
-
         private void ApplySizeCorrections()
         {
             Vector3 topWaterScale = new Vector3(_width, _maxWaveAmplitude * 2);
             Vector3 topWaterPosition = new Vector3(0f, topWaterScale.y / 2f);
             TopWaterTransform.localScale = topWaterScale;
             TopWaterTransform.localPosition = topWaterPosition;
+            TopWaterTransform.localRotation = Quaternion.identity;
             
 
             Vector3 bottomWaterScale = new Vector3(_width, _depth - _maxWaveAmplitude);
             Vector3 bottomWaterPosition = new Vector3(0f, -bottomWaterScale.y / 2f);
             _bottomWater.localScale = bottomWaterScale;
             _bottomWater.localPosition = bottomWaterPosition;
+            _bottomWater.localRotation = Quaternion.identity;
         }
 
         public void Init(IWaterInteractionsController interactionsController, Material waterMaterial)
@@ -53,11 +50,6 @@ namespace Project.SideWater2D.Scripts.InteractableWater
             ApplySizeCorrections();
 
             _topWaterRenderer.material = waterMaterial;
-        }
-
-        private void Cleanup()
-        {
-
         }
 
 

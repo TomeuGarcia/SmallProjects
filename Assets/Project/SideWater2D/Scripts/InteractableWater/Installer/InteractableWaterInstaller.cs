@@ -7,10 +7,10 @@ namespace Project.SideWater2D.Scripts.InteractableWater
     {
         [Header("CONFIGURATION")]
         [SerializeField] private Material _waterSharedMaterial;
-        [SerializeField] private bool _singleRippleWave = true;
-        [SerializeField] private bool _useSharedMateral = true;
+        [SerializeField] private bool _singleRippleWave = false;
+        [SerializeField] private bool _useSharedMateral = false;
         
-        [Header("REFERENCES")]
+        [Header("COMPONENTS")]
         [SerializeField] private InteractableWater _interactableWater;
         [SerializeField] private InteractableWaterTrigger[] _triggers;
         

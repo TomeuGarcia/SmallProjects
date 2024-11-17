@@ -75,8 +75,8 @@ Material:
     - _WavePropagationSpeed: 8
     - _WaveSpeed: 5
     m_Colors:
-    - _Buffer0_InteractPosition: {r: -6.5, g: 2.2239761, b: 0, a: 0}
-    - _Buffer1_InteractPosition: {r: -5.75, g: 3.75, b: 0, a: 0}
-    - _Buffer2_InteractPosition: {r: 4, g: 2.061336, b: 0, a: 0}
-    - _Buffer3_InteractPosition: {r: 1.5, g: 3, b: 0, a: 0}
+    - _Buffer0_InteractPosition: {r: -3.120934, g: 2.2531374, b: 0, a: 0}
+    - _Buffer1_InteractPosition: {r: 0.69122875, g: 2.7293854, b: 0, a: 0}
+    - _Buffer2_InteractPosition: {r: -9.016392, g: 2.1412632, b: 0, a: 0}
+    - _Buffer3_InteractPosition: {r: 3.1040583, g: 2.6390698, b: 0, a: 0}
   m_BuildTextureStacks: []

@@ -122,6 +122,39 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &451476472
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 451476473}
+  m_Layer: 0
+  m_Name: View
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &451476473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451476472}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1669947465}
+  - {fileID: 988298892}
+  m_Father: {fileID: 971835260}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &484788720
 GameObject:
   m_ObjectHideFlags: 0
@@ -329,7 +362,7 @@ SpriteRenderer:
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6,
     type: 3}
-  m_Color: {r: 0, g: 0.81960785, b: 0.06291412, a: 1}
+  m_Color: {r: 0.21176471, g: 0.75686276, b: 0.41960785, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -509,8 +542,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1669947465}
-  - {fileID: 988298892}
+  - {fileID: 451476473}
   - {fileID: 1352625784}
   m_Father: {fileID: 849416925}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -575,12 +607,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 988298891}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -2.75, z: 0}
   m_LocalScale: {x: 20, y: 5.5, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 971835260}
+  m_Father: {fileID: 451476473}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &988298893
 SpriteRenderer:
@@ -966,7 +998,7 @@ SpriteRenderer:
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6,
     type: 3}
-  m_Color: {r: 0, g: 0.81960785, b: 0.06291412, a: 1}
+  m_Color: {r: 0.21176471, g: 0.75686276, b: 0.41960785, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1032,6 +1064,7 @@ GameObject:
   - component: {fileID: 1543628416}
   - component: {fileID: 1543628419}
   - component: {fileID: 1543628420}
+  - component: {fileID: 1543628421}
   - component: {fileID: 1543628415}
   - component: {fileID: 1543628418}
   - component: {fileID: 1543628417}
@@ -1199,6 +1232,25 @@ MonoBehaviour:
   _underWaterColor: {r: 0.49832684, g: 0.34042364, b: 0.8490566, a: 1}
   _interactableWaterUser: {fileID: 1543628419}
   _spriteRenderer: {fileID: 1543628415}
+--- !u!114 &1543628421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1543628414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b50289ef610487dab35a4887808d2ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _motionConfig:
+    _maxSpeed: 40
+    _acceleration: 500
+    _startDeceleratingDistance: 1
+    _stopMovingDistance: 0.2
+  _requiredKey: 323
+  _rigidbody: {fileID: 1543628418}
 --- !u!1 &1669947463
 GameObject:
   m_ObjectHideFlags: 0
@@ -1277,12 +1329,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1669947463}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 20, y: 3, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 971835260}
+  m_Father: {fileID: 451476473}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1672868876
 GameObject:
