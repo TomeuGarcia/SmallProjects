@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -19,6 +20,14 @@ namespace Project.SideWater2D.Scripts.InteractableWater
         public void StartInteraction(Vector2 position, bool isEntering)
         {
             GetNextAvailable().StartInteraction(position, isEntering);
+        }
+
+        public void Clear()
+        {
+            foreach (SingleWaterInteractionController subInteractionController in _subInteractionControllers)
+            {
+                subInteractionController.Clear();
+            }
         }
 
 

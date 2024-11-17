@@ -23,6 +23,11 @@ namespace Project.Shared.Scripts.PhysicsMotion
             _motionFollower = new GravitylessMotionFollower2D(_motionConfig, _rigidbody);
         }
 
+        private void OnDisable()
+        {
+            _motionFollower.StopMoving();
+        }
+
         private void Update()
         {
             if (UnityEngine.Input.GetKeyDown(_requiredKey))

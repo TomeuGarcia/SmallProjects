@@ -28,6 +28,11 @@ namespace Project.SideWater2D.Scripts.InteractableWater
             ApplySizeCorrections();
         }
 
+        private void OnDestroy()
+        {
+            _interactionsController.Clear();
+        }
+
         private void ApplySizeCorrections()
         {
             Vector3 topWaterScale = new Vector3(_width, _maxWaveAmplitude * 2);

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8111196213225323650
+--- !u!114 &-6751657543703286177
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SingleWave_SideWater2D_Material
-  m_Shader: {fileID: -6465566751694194690, guid: 1dc3c6022eaadaa49a8d8e0a250c6107,
+  m_Name: MultipleWaves_SideWater2D_X_Material
+  m_Shader: {fileID: -6465566751694194690, guid: 1fde0e62e02392a45b3010c487a2f9e4,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -55,20 +55,29 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CurrentRippleTime: 6
+    - _BUFFER_COUNT: 4
+    - _Buffer0_CurrentRippleTime: 6
+    - _Buffer0_IsEntering: 1
+    - _Buffer1_CurrentRippleTime: 6
+    - _Buffer1_IsEntering: 0
+    - _Buffer2_CurrentRippleTime: 4.4914393
+    - _Buffer2_IsEntering: 1
+    - _Buffer3_CurrentRippleTime: 6
+    - _Buffer3_IsEntering: 0
+    - _BufferCount: 4
     - _Frequency: 3
-    - _IsEntering: 1
-    - _MainTex: 0
     - _MaxInteractDistance: 15
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RippleDuration: 6
-    - _RippleRampDownDuration: 9.5
-    - _RippleRampUpDuration: 0.5
     - _ShowAir: 0
     - _WaveFadeSharpness: 4
     - _WavePropagationSpeed: 8
     - _WaveSpeed: 5
     m_Colors:
-    - _InteractPosition: {r: 5, g: 2.0433679, b: 0, a: 0}
+    - _Axis: {r: 1, g: 0, b: 0, a: 0}
+    - _Buffer0_InteractPosition: {r: 2.5196474, g: 2.3298578, b: 0, a: 0}
+    - _Buffer1_InteractPosition: {r: -4.651102, g: 2.5898657, b: 0, a: 0}
+    - _Buffer2_InteractPosition: {r: 1.5921944, g: 2.178973, b: 0, a: 0}
+    - _Buffer3_InteractPosition: {r: 6.345934, g: 2.5862758, b: 0, a: 0}
   m_BuildTextureStacks: []
