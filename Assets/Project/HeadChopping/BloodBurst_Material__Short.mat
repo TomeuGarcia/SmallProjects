@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8111196213225323650
+--- !u!114 &-6292579548816993529
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,14 +20,14 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SingleWave_SideWater2D_Y_Material
-  m_Shader: {fileID: -6465566751694194690, guid: 1dc3c6022eaadaa49a8d8e0a250c6107,
+  m_Name: BloodBurst_Material__Short
+  m_Shader: {fileID: -6465566751694194690, guid: daddebb14c37f4d4e930db3375e36f97,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 4
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -38,10 +38,6 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -56,22 +52,19 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CurrentRippleTime: 1.53
-    - _Frequency: 3
-    - _IsEntering: 1
-    - _MainTex: 0
-    - _MaxInteractDistance: 15
+    - _AgeFadeStart: 0.2
+    - _AgeSharpness: 0.1
+    - _ClipThreshold: 0.075
+    - _Emission: 2
+    - _EndSize: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RippleDuration: 6
-    - _RippleRampDownDuration: 9.5
-    - _RippleRampUpDuration: 0.5
-    - _ShowAir: 0
-    - _WaveFadeSharpness: 4
-    - _WavePropagationSpeed: 8
-    - _WaveSpeed: 5
+    - _Speed: 6
+    - _Spread: 0.4
+    - _VertexSpreadAmount: 0
     m_Colors:
-    - _Axis: {r: 0, g: 1, b: 0, a: 0}
-    - _InteractPosition: {r: -4.86, g: 0, b: 0, a: 0}
+    - _AgeFade: {r: -0.25, g: 1, b: 0, a: 0}
+    - _Color: {r: 0.36792448, g: 0, b: 0, a: 1}
+    - _Scale: {r: 5, g: 3, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

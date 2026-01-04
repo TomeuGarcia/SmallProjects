@@ -44,7 +44,7 @@ namespace Project.Shared.Scripts.PhysicsMotion
             bool withinStopMovingDistance = toTargetDistance < _config.StopMovingDistance;
             if (withinStopMovingDistance)
             {
-                _rigidbody.velocity = Vector2.zero;
+                _rigidbody.linearVelocity = Vector2.zero;
                 return;
             }
             
@@ -57,7 +57,7 @@ namespace Project.Shared.Scripts.PhysicsMotion
             
             
             _acceleratedMotion.Update(deltaTime, direction, _config.MaxSpeed, _config.Acceleration);
-            _rigidbody.velocity = _acceleratedMotion.CurrentVelocity;
+            _rigidbody.linearVelocity = _acceleratedMotion.CurrentVelocity;
         }
 
         
