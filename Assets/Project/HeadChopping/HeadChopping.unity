@@ -1205,10 +1205,11 @@ MonoBehaviour:
     maxDeceleration: 480
     maxAirAcceleration: 200
     maxAirDeceleration: 30
-    jumpHeight: 6
-    airJumpHeight: 3
-    gravityMultiplier: 8
+    jumpDistance: 6
+    wallJumpDistance: 4
+    airJumpDistance: 3
     maxAirJumps: 0
+    gravityMultiplier: 8
     coyoteTime: 0.15
     alwaysJumpStraightUpOnGround: 1
     clearVerticalSpeedOnJump: 1
@@ -1735,7 +1736,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.0000029504295}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 657760584}
@@ -3264,7 +3265,7 @@ Transform:
   m_GameObject: {fileID: 1513953322}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -17.75}
+  m_LocalPosition: {x: 0, y: 2, z: -18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3884,7 +3885,7 @@ Transform:
   m_GameObject: {fileID: 1895281076}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0.25}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

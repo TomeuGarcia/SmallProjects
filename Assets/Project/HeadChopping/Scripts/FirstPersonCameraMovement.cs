@@ -7,6 +7,21 @@ namespace HeadChopping
 
     public class FirstPersonCameraMovement : MonoBehaviour
     {
+        public interface IInputSource
+        {
+            void GetInput(out float yawInput, out float pitchInput);
+        }
+
+        private class DefaultInputSource : IInputSource
+        {
+            void IInputSource.GetInput(out float yawInput, out float pitchInput)
+            {
+                yawInput = Input.GetAxis("Mouse X");
+                pitchInput = Input.GetAxis("Mouse Y");
+            }
+        }
+
+
         [SerializeField] private Transform _cameraTransform;
         [SerializeField, Min(1.0f)] private float _sensitivity = 1000.0f;
         [SerializeField, Range(0.0f, 89.0f)] private float _maxPitchDown = 45.0f;
@@ -16,7 +31,7 @@ namespace HeadChopping
         private float _accumulatedPitch;
         const float Clamp = 0.5f;
 
-        private bool _canMoveCamera;
+        private IInputSource _inputSource = null;
 
         public Transform CameraTransform => _cameraTransform;
 
@@ -25,37 +40,24 @@ namespace HeadChopping
         {
             _accumulatedYaw = 0.0f;
             _accumulatedPitch = 0.0f;
-            _canMoveCamera = true;
+        }
+
+        public void AwakeConfigure(IInputSource inputSource)
+        {
+            _inputSource = inputSource;
         }
 
         private void Start()
         {
-            HideCursor();
+            if (_inputSource == null) _inputSource = new DefaultInputSource();
         }
 
         public void DoUpdate()
         {
-            if (_canMoveCamera)
-            {
-                UpdateCameraRotation();
-            }
-
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-                HideCursor();
-                _canMoveCamera = true;
-            }
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                _canMoveCamera = false;
-            }
-        }
-
-        private void UpdateCameraRotation()
-        {
+            _inputSource.GetInput(out float yawInput, out float pitchInput);
             float deltaSensitivity = _sensitivity * Time.deltaTime;
-            float yawAnglesToAdd = Mathf.Clamp(Input.GetAxis("Mouse X"), -Clamp, Clamp) * deltaSensitivity;
-            float pitchAnglesToAdd = Mathf.Clamp(Input.GetAxis("Mouse Y"), -Clamp, Clamp) * -deltaSensitivity;
+            float yawAnglesToAdd =   Mathf.Clamp(yawInput,   -Clamp, Clamp) * deltaSensitivity;
+            float pitchAnglesToAdd = Mathf.Clamp(pitchInput, -Clamp, Clamp) * -deltaSensitivity;
 
             Vector3 cameraForward = _cameraTransform.forward;
             Vector3 cameraRight = _cameraTransform.right;
@@ -72,12 +74,6 @@ namespace HeadChopping
                 Quaternion.AngleAxis(_accumulatedPitch, Vector3.right);
 
             _cameraTransform.rotation = cameraRotation;
-        }
-
-        private void HideCursor()
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Confined;
         }
     }
 

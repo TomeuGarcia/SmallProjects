@@ -40,10 +40,12 @@ namespace HeadChopping
             [SerializeField, Min(0.0f)] public float maxAirAcceleration = 30.0f;
             [SerializeField, Min(0.0f)] public float maxAirDeceleration = 30.0f;
             [Space(4)]
-            [SerializeField, Min(1.0f)] public float jumpHeight = 2.0f;
-            [SerializeField, Min(1.0f)] public float airJumpHeight = 2.0f;
-            [SerializeField, Min(0.0f)] public float gravityMultiplier = 1.0f;
+            [SerializeField, Min(1.0f)] public float jumpDistance = 3.0f;
+            [SerializeField, Min(1.0f)] public float wallJumpDistance = 2.0f;
+            [SerializeField, Min(1.0f)] public float airJumpDistance = 2.0f;
             [SerializeField, Range(0, 5)] public int maxAirJumps = 0;
+            [Space(4)]
+            [SerializeField, Min(0.0f)] public float gravityMultiplier = 1.0f;
             [SerializeField, Min(0.0f)] public float coyoteTime = 0.2f;
             [SerializeField] public bool alwaysJumpStraightUpOnGround = false;
             [SerializeField] public bool clearVerticalSpeedOnJump = false;
@@ -90,6 +92,8 @@ namespace HeadChopping
         private int _stepsSinceLastGrounded;
         private int _stepsSinceLastJump;
         private float _timeSinceLastGrounded;
+        private Vector3 _gravityAcceleration;
+        private Vector3 _gravityVelocity;
 
         public Configuration Config => _configuration;
         private bool OnGround => _groundContactCount > 0;
@@ -142,7 +146,6 @@ namespace HeadChopping
             _inputSource.GetInput(out Vector2 movementInput, out bool desiredJump);
 
             _desiredVelocity = new Vector3(movementInput.x, 0f, movementInput.y) * Config.maxSpeed;
-            Debug.Log($"_desiredVelocity {_desiredVelocity}");
             _desiredJump |= desiredJump;
         }
 
@@ -229,6 +232,9 @@ namespace HeadChopping
             _stepsSinceLastJump += 1;
             _currentVelocity = _rigidbody.linearVelocity;
 
+            _gravityAcceleration = Config.gravityMultiplier * Physics.gravity;
+            _gravityVelocity = _gravityAcceleration * Time.deltaTime;
+
             bool onGround = OnGround;
             bool snapToGround = SnapToGround();
             bool onSteep = CheckSteepContacts();
@@ -304,8 +310,6 @@ namespace HeadChopping
                 : (accelerating ? Config.maxAirAcceleration : Config.maxAirDeceleration);
             float maxSpeedChange = acceleration * Time.deltaTime;
 
-            Debug.Log((accelerating ? "Accelerating TRUE" : "Accelerating FALSE") + $"    ({acceleration})   ({_desiredVelocity})");
-
             float newX = Mathf.MoveTowards(currentX, _desiredVelocity.x, maxSpeedChange);
             float newZ = Mathf.MoveTowards(currentZ, _desiredVelocity.z, maxSpeedChange);
 
@@ -316,6 +320,7 @@ namespace HeadChopping
         private void Jump()
         {
             Vector3 jumpDirection;
+            bool onWall = false;
 
             if (OnGround || _timeSinceLastGrounded < Config.coyoteTime)
             {
@@ -324,6 +329,7 @@ namespace HeadChopping
             else if (OnSteep)
             {
                 jumpDirection = _steepNormal;
+                onWall = true;
                 _jumpPhase = 0;
             }
             else if (Config.maxAirJumps > 0 && _jumpPhase <= Config.maxAirJumps)
@@ -342,8 +348,8 @@ namespace HeadChopping
 
             jumpDirection = (jumpDirection + Vector3.up).normalized; // To allow interactions like: wall jumping chain, etc.
 
-            float jumpHeight = _jumpPhase > 1 ? Config.airJumpHeight : Config.jumpHeight;
-            float gravity = Config.gravityMultiplier * Physics.gravity.y;
+            float jumpHeight = _jumpPhase > 1 ? Config.airJumpDistance : (onWall ? Config.wallJumpDistance : Config.jumpDistance);
+            float gravity = _gravityAcceleration.y;
             float jumpSpeed = Mathf.Sqrt(-2f * gravity * jumpHeight);
             float alignedSpeed = Vector3.Dot(_currentVelocity, jumpDirection);
 
@@ -364,12 +370,11 @@ namespace HeadChopping
         private void ApplyGravity()
         {
             // GRAVITY  (Tomeu) 
-            float maxSpeedChangeGravity = (Config.gravityMultiplier) * Physics.gravity.y * Time.deltaTime;
-            _currentVelocity.y += maxSpeedChangeGravity;
+            _currentVelocity.y += _gravityVelocity.y;
 
             if (OnGround) // To avoid sliding down in slopes
             {
-                Vector3 slopesGravityPush = ProjectOnContactPlane((Config.gravityMultiplier * Time.deltaTime) * Physics.gravity);
+                Vector3 slopesGravityPush = ProjectOnContactPlane(_gravityVelocity);
                 _currentVelocity -= slopesGravityPush;
             }
         }
@@ -377,7 +382,7 @@ namespace HeadChopping
         private void RemoveGroundPenetrationSpeed()
         {
             // (Tomeu) 
-            if (_currentVelocity.y < 0.0f)
+            if (_currentVelocity.y < _gravityVelocity.y) // < because it is negative
             {
                 float colliderHeightOffset = _capsuleCollider.height / 2;
                 float distance = colliderHeightOffset + (-_currentVelocity.y * Time.deltaTime);
