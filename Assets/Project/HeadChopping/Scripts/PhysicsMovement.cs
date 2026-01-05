@@ -207,7 +207,7 @@ namespace HeadChopping
             Vector3 position = _rigidbody.position;
             position.y -= (_capsuleCollider.height / 2) - 0.1f;
 
-            if (Physics.Raycast(position, direction, out RaycastHit hit, distance, Config.probeMask))
+            if (Physics.Raycast(position, direction, out RaycastHit hit, distance, Config.probeMask, QueryTriggerInteraction.Ignore))
             {
                 hitNormal = hit.normal;
                 hitDistanceForContact = Mathf.Max(0.0f, hit.distance - _capsuleCollider.radius);
@@ -381,7 +381,7 @@ namespace HeadChopping
             {
                 float colliderHeightOffset = _capsuleCollider.height / 2;
                 float distance = colliderHeightOffset + (-_currentVelocity.y * Time.deltaTime);
-                if (Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, distance, Config.probeMask))
+                if (Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, distance, Config.probeMask, QueryTriggerInteraction.Ignore))
                 {
                     float penetrationDistance = distance - hit.distance;
                     float excessSpeedY = penetrationDistance / Time.deltaTime;
@@ -424,7 +424,7 @@ namespace HeadChopping
             }
 
             float proveDistance = (_capsuleCollider.height / 2) + Config.groundProbeExtraDistance;
-            if (!Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, proveDistance, Config.probeMask))
+            if (!Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, proveDistance, Config.probeMask, QueryTriggerInteraction.Ignore))
             {
                 //Debug.Log("NO HIT");
                 return false;
