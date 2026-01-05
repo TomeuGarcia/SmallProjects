@@ -1,5 +1,4 @@
 using UnityEngine;
-using static HeadChopping.PhysicsMovement;
 
 
 
@@ -45,6 +44,7 @@ namespace HeadChopping
             [SerializeField, Min(1.0f)] public float airJumpHeight = 2.0f;
             [SerializeField, Min(0.0f)] public float gravityMultiplier = 1.0f;
             [SerializeField, Range(0, 5)] public int maxAirJumps = 0;
+            [SerializeField, Min(0.0f)] public float coyoteTime = 0.2f;
             [SerializeField] public bool alwaysJumpStraightUpOnGround = false;
             [SerializeField] public bool clearVerticalSpeedOnJump = false;
             [Space(4)]
@@ -89,12 +89,11 @@ namespace HeadChopping
         private int _steepContactCount;
         private int _stepsSinceLastGrounded;
         private int _stepsSinceLastJump;
-        private int _stepsSinceLastSnapToGround;
+        private float _timeSinceLastGrounded;
 
         public Configuration Config => _configuration;
         private bool OnGround => _groundContactCount > 0;
         private bool OnSteep => _steepContactCount > 0;
-        private bool OnAir => !OnGround && !OnSteep;
         private bool _previousOnGround;
 
 
@@ -109,9 +108,9 @@ namespace HeadChopping
             _groundContactCount = 0;
             _jumpPhase = 0;
 
-            _stepsSinceLastGrounded = 0;
             _stepsSinceLastJump = 0;
-            _stepsSinceLastSnapToGround = 0;
+            _stepsSinceLastGrounded = 0;
+            _timeSinceLastGrounded = 0.0f;
 
             _previousOnGround = false;
             _previousConnectedRigidbody = null;
@@ -143,6 +142,7 @@ namespace HeadChopping
             _inputSource.GetInput(out Vector2 movementInput, out bool desiredJump);
 
             _desiredVelocity = new Vector3(movementInput.x, 0f, movementInput.y) * Config.maxSpeed;
+            Debug.Log($"_desiredVelocity {_desiredVelocity}");
             _desiredJump |= desiredJump;
         }
 
@@ -154,15 +154,13 @@ namespace HeadChopping
             if (_desiredJump)
             {
                 _desiredJump = false;
-                _inputSource.OnJumpInputConsumed();
                 Jump();
             }
 
             //Debug.Log($"OnGround {OnGround}     ContactNormal {_contactNormal}");
 
-            ApplyLandFromFall();
             ApplyGravity();
-
+            RemoveGroundPenetrationSpeed();     
 
             _rigidbody.linearVelocity = _currentVelocity;
             ClearState();
@@ -209,7 +207,7 @@ namespace HeadChopping
             Vector3 position = _rigidbody.position;
             position.y -= (_capsuleCollider.height / 2) - 0.1f;
 
-            if (Physics.Raycast(position, direction, out RaycastHit hit, distance))
+            if (Physics.Raycast(position, direction, out RaycastHit hit, distance, Config.probeMask))
             {
                 hitNormal = hit.normal;
                 hitDistanceForContact = Mathf.Max(0.0f, hit.distance - _capsuleCollider.radius);
@@ -226,9 +224,9 @@ namespace HeadChopping
 
         private void UpdateState()
         {
+            _timeSinceLastGrounded += Time.deltaTime;
             _stepsSinceLastGrounded += 1;
             _stepsSinceLastJump += 1;
-            _stepsSinceLastSnapToGround += 1;
             _currentVelocity = _rigidbody.linearVelocity;
 
             bool onGround = OnGround;
@@ -237,7 +235,8 @@ namespace HeadChopping
             if (onGround || snapToGround || onSteep)
             {
                 //Debug.Log($"OnGround {onGround},    snapToGround {snapToGround},    onSteep {onSteep}");
-                
+
+                _timeSinceLastGrounded = 0.0f;
                 _stepsSinceLastGrounded = 0;
                 if (_stepsSinceLastJump > 1)
                 {
@@ -246,10 +245,6 @@ namespace HeadChopping
                 if (_groundContactCount > 1)
                 {
                     _contactNormal.Normalize();
-                }
-                if (snapToGround)
-                {
-                    _stepsSinceLastSnapToGround = 0;
                 }
             }
             else
@@ -309,6 +304,8 @@ namespace HeadChopping
                 : (accelerating ? Config.maxAirAcceleration : Config.maxAirDeceleration);
             float maxSpeedChange = acceleration * Time.deltaTime;
 
+            Debug.Log((accelerating ? "Accelerating TRUE" : "Accelerating FALSE") + $"    ({acceleration})   ({_desiredVelocity})");
+
             float newX = Mathf.MoveTowards(currentX, _desiredVelocity.x, maxSpeedChange);
             float newZ = Mathf.MoveTowards(currentZ, _desiredVelocity.z, maxSpeedChange);
 
@@ -320,7 +317,7 @@ namespace HeadChopping
         {
             Vector3 jumpDirection;
 
-            if (OnGround)
+            if (OnGround || _timeSinceLastGrounded < Config.coyoteTime)
             {
                 jumpDirection = Config.alwaysJumpStraightUpOnGround ? Vector3.up : _contactNormal;
             }
@@ -339,6 +336,7 @@ namespace HeadChopping
                 return;
             }
 
+            _inputSource.OnJumpInputConsumed();
             _stepsSinceLastJump = 0;
             _jumpPhase += 1;
 
@@ -362,16 +360,6 @@ namespace HeadChopping
             _currentVelocity += jumpDirection * jumpSpeed;
         }
 
-        private void ApplyLandFromFall()
-        {
-            // LAND FROM FALL  (Tomeu) 
-            bool justLandedFromFall = !OnSteep && OnGround && _stepsSinceLastSnapToGround > 1;
-            if (justLandedFromFall)
-            {
-                Vector3 projectedDesiredVelocity = ProjectOnContactPlane(_desiredVelocity);
-                _currentVelocity = projectedDesiredVelocity;
-            }
-        }
 
         private void ApplyGravity()
         {
@@ -383,6 +371,22 @@ namespace HeadChopping
             {
                 Vector3 slopesGravityPush = ProjectOnContactPlane((Config.gravityMultiplier * Time.deltaTime) * Physics.gravity);
                 _currentVelocity -= slopesGravityPush;
+            }
+        }
+
+        private void RemoveGroundPenetrationSpeed()
+        {
+            // (Tomeu) 
+            if (_currentVelocity.y < 0.0f)
+            {
+                float colliderHeightOffset = _capsuleCollider.height / 2;
+                float distance = colliderHeightOffset + (-_currentVelocity.y * Time.deltaTime);
+                if (Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, distance, Config.probeMask))
+                {
+                    float penetrationDistance = distance - hit.distance;
+                    float excessSpeedY = penetrationDistance / Time.deltaTime;
+                    _currentVelocity.y += excessSpeedY;
+                }
             }
         }
 
@@ -435,7 +439,6 @@ namespace HeadChopping
             _groundContactCount = 1;
             _contactNormal = hit.normal;
             _connectedRigidbody = hit.rigidbody;
-
 
             float dot = Vector3.Dot(_currentVelocity, hit.normal);
             if (dot > 0.01f)

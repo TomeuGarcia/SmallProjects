@@ -35,7 +35,7 @@ namespace HeadChopping
         {
             Vector3 velocity = transform.InverseTransformDirection(rigidbody.linearVelocity); // Acceelerate along the current move direction
             float rigidbodySpeed = _preventFalling ? velocity.y : Mathf.Abs(velocity.y);
-            if (rigidbodySpeed >= _speed)
+            if (rigidbodySpeed >= _speed || rigidbody.isKinematic)
             {
                 return;
             }
