@@ -34,22 +34,23 @@ namespace HeadChopping
         public class Configuration
         {
             [SerializeField, Min(0.0f)] public float maxSpeed = 10.0f;
-            [Space(4)]
+            [Space(5)]
             [SerializeField, Min(0.0f)] public float maxAcceleration = 80.0f;
             [SerializeField, Min(0.0f)] public float maxDeceleration = 80.0f;
             [SerializeField, Min(0.0f)] public float maxAirAcceleration = 30.0f;
             [SerializeField, Min(0.0f)] public float maxAirDeceleration = 30.0f;
-            [Space(4)]
+            [Space(5)]
             [SerializeField, Min(1.0f)] public float jumpDistance = 3.0f;
             [SerializeField, Min(1.0f)] public float wallJumpDistance = 2.0f;
+            [SerializeField] public bool canWallJump = true;
             [SerializeField, Min(1.0f)] public float airJumpDistance = 2.0f;
             [SerializeField, Range(0, 5)] public int maxAirJumps = 0;
-            [Space(4)]
+            [Space(5)]
             [SerializeField, Min(0.0f)] public float gravityMultiplier = 1.0f;
             [SerializeField, Min(0.0f)] public float coyoteTime = 0.2f;
             [SerializeField] public bool alwaysJumpStraightUpOnGround = false;
             [SerializeField] public bool clearVerticalSpeedOnJump = false;
-            [Space(4)]
+            [Space(5)]
             [SerializeField, Range(0, 90)] private float _maxGroundAngle = 50.0f;
             [SerializeField, Min(0.0f)] public float speedThresholdToIgnoreSnap = 100.0f;
             [SerializeField, Min(0.0f)] public float groundProbeExtraDistance = 1.0f;
@@ -317,6 +318,7 @@ namespace HeadChopping
                                 zAxis * (newZ - currentZ);
         }
 
+
         private void Jump()
         {
             Vector3 jumpDirection;
@@ -326,7 +328,7 @@ namespace HeadChopping
             {
                 jumpDirection = Config.alwaysJumpStraightUpOnGround ? Vector3.up : _contactNormal;
             }
-            else if (OnSteep)
+            else if (OnSteep && Config.canWallJump)
             {
                 jumpDirection = _steepNormal;
                 onWall = true;

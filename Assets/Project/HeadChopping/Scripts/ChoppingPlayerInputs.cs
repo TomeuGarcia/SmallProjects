@@ -11,6 +11,7 @@ namespace HeadChopping
         private Timer _jumpInputBufferTimer;
         private float _movementInputForward;
         private float _movementInputRight;
+        private bool _attackRequested;
 
         private bool _canMoveCamera;
 
@@ -26,15 +27,23 @@ namespace HeadChopping
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1))
+            if (_canMoveCamera)
             {
-                HideCursor();
-                _canMoveCamera = true;
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    _canMoveCamera = false;
+                    return;
+                }
             }
-            if (Input.GetKeyDown(KeyCode.Escape))
+            else
             {
-                _canMoveCamera = false;
-            }
+                if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1))
+                {
+                    HideCursor();
+                    _canMoveCamera = true;
+                    return;
+                }
+            }                      
 
 
             _jumpInputBufferTimer.Update(Time.deltaTime);
@@ -45,6 +54,8 @@ namespace HeadChopping
 
             _movementInputForward = Input.GetKey(KeyCode.W) ? 1 : (Input.GetKey(KeyCode.S) ? -1 : 0);
             _movementInputRight = Input.GetKey(KeyCode.D) ? 1 : (Input.GetKey(KeyCode.A) ? -1 : 0);
+
+            _attackRequested = Input.GetKeyDown(KeyCode.Mouse0);
         }
 
 
@@ -55,6 +66,11 @@ namespace HeadChopping
         }
 
 
+
+        public bool AttackRequested()
+        {
+            return _attackRequested;
+        }
 
 
         void FirstPersonCameraMovement.IInputSource.GetInput(out float yawInput, out float pitchInput)
