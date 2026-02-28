@@ -6295,6 +6295,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 1
     maxStairSlopeHeight: 0.8
+    considerWallLedgeAsStairSlopeWhenJumping: 0
   _rigidbody: {fileID: 657760586}
   _capsuleCollider: {fileID: 657760587}
 --- !u!54 &657760586

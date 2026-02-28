@@ -35,7 +35,7 @@ namespace HeadChopping
                 SpawnBlood();
             }
 
-            DEBUG_TestGroundDetection();
+            //DEBUG_TestGroundDetection();
         }
 
 
