@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.LightAnchor;
 
 
 
@@ -55,6 +56,8 @@ namespace HeadChopping
             [SerializeField, Min(0.0f)] public float speedThresholdToIgnoreSnap = 100.0f;
             [SerializeField, Min(0.0f)] public float groundProbeExtraDistance = 1.0f;
             [SerializeField] public LayerMask probeMask = -1;
+            [Space(5)]
+            [SerializeField, Min(0.0f)] public float maxStairSlopeHeight = 0.3f;
 
             public float MinGroundDotProduct { get; private set; } = 0.0f;
 
@@ -79,6 +82,7 @@ namespace HeadChopping
         private Rigidbody _connectedRigidbody;
         private Rigidbody _previousConnectedRigidbody;
 
+        private Vector2 _movementInput;
         private Vector3 _currentVelocity;
         private Vector3 _desiredVelocity;
         private Vector3 _connectionVelocity;
@@ -100,6 +104,13 @@ namespace HeadChopping
         private bool OnGround => _groundContactCount > 0;
         private bool OnSteep => _steepContactCount > 0;
         private bool _previousOnGround;
+        private bool _wasSnappedToGround;
+
+        private bool _climbingStairSlopes = false;
+        private Vector3 _targetPositionOnSlopeTip;
+        private Vector3 _initialDirectionToSlopeTip;
+        private Vector2 _movementInputInitialSlopeClimb;
+
 
 
         private void OnValidate()
@@ -144,16 +155,18 @@ namespace HeadChopping
         }
         public void DoUpdate()
         {
-            _inputSource.GetInput(out Vector2 movementInput, out bool desiredJump);
+            _inputSource.GetInput(out _movementInput, out bool desiredJump);
 
-            _desiredVelocity = new Vector3(movementInput.x, 0f, movementInput.y) * Config.maxSpeed;
+            _desiredVelocity = new Vector3(_movementInput.x, 0f, _movementInput.y) * Config.maxSpeed;
             _desiredJump |= desiredJump;
         }
 
         private void FixedUpdate()
         {
             UpdateState();
+            CheckStartClimbStairSlopes();
             AdjustVelocity();
+            ApplyClimbStairSlopesVelocity();
 
             if (_desiredJump)
             {
@@ -169,6 +182,26 @@ namespace HeadChopping
             _rigidbody.linearVelocity = _currentVelocity;
             ClearState();
         }
+
+
+
+        public void TeleportToPosition(Vector3 position, bool clearVelocity)
+        {
+            _climbingStairSlopes = false;
+            _rigidbody.MovePosition(position);
+            if (clearVelocity)
+            {
+                _currentVelocity = Vector3.zero;
+            }
+        }
+
+        public void GetGroundedState(out bool onGround, out bool onSteep, out bool climbingStairSlopes)
+        {
+            onGround = OnGround || _wasSnappedToGround;
+            onSteep = OnSteep;
+            climbingStairSlopes = _climbingStairSlopes;
+        }
+
 
 
         private void OnCollisionEnter(Collision collision)
@@ -206,15 +239,15 @@ namespace HeadChopping
 
         private bool EvaluateCollisionAhead(out Vector3 hitNormal, out float hitDistanceForContact)
         {
-            float distance = _capsuleCollider.radius + Mathf.Max(0.1f, (_desiredVelocity.magnitude * Time.deltaTime) );
+            float distance = GetColliderRadius() + Mathf.Max(0.1f, (_desiredVelocity.magnitude * Time.deltaTime) );
             Vector3 direction = _desiredVelocity.normalized;
-            Vector3 position = _rigidbody.position;
-            position.y -= (_capsuleCollider.height / 2) - 0.1f;
+            Vector3 position = GetPosition();
+            position.y -= GetBodyOffsetToFeet() - 0.1f;
 
             if (Physics.Raycast(position, direction, out RaycastHit hit, distance, Config.probeMask, QueryTriggerInteraction.Ignore))
             {
                 hitNormal = hit.normal;
-                hitDistanceForContact = Mathf.Max(0.0f, hit.distance - _capsuleCollider.radius);
+                hitDistanceForContact = Mathf.Max(0.0f, hit.distance - GetColliderRadius());
                 return true;
             }
 
@@ -222,7 +255,6 @@ namespace HeadChopping
             hitDistanceForContact = 0.0f;
             return false;
         }
-
 
 
 
@@ -237,11 +269,11 @@ namespace HeadChopping
             _gravityVelocity = _gravityAcceleration * Time.deltaTime;
 
             bool onGround = OnGround;
-            bool snapToGround = SnapToGround();
+            _wasSnappedToGround = SnapToGround();
             bool onSteep = CheckSteepContacts();
-            if (onGround || snapToGround || onSteep)
+            if (onGround || _wasSnappedToGround || onSteep)
             {
-                //Debug.Log($"OnGround {onGround},    snapToGround {snapToGround},    onSteep {onSteep}");
+                //Debug.Log($"OnGround {onGround},    _wasSnappedToGround {_wasSnappedToGround},    onSteep {onSteep}");
 
                 _timeSinceLastGrounded = 0.0f;
                 _stepsSinceLastGrounded = 0;
@@ -276,7 +308,7 @@ namespace HeadChopping
                 _connectionVelocity = connectionMovement / Time.deltaTime;
             }            
 
-            _connectionWorldPosition = _rigidbody.position;
+            _connectionWorldPosition = GetPosition();
             _connectionLocalPosition = _connectedRigidbody.transform.InverseTransformPoint(_connectionWorldPosition);
         }
 
@@ -284,19 +316,30 @@ namespace HeadChopping
         private void AdjustVelocity()
         {
             //// (Tomeu)    Repulsion velocity to prevent climbing up steeps
-            if (EvaluateCollisionAhead(out Vector3 hitNormal, out float hitDistanceForContact))
-            {
-                if (hitNormal.y < Config.MinGroundDotProduct)
-                {
-                    Vector3 counterDirection = ProjectOnContactPlane(hitNormal).normalized;
-                    Vector3 repulsionVelocity = -Vector3.Dot(counterDirection, _desiredVelocity) * counterDirection;
-                    _desiredVelocity += repulsionVelocity;
-                }
-            }
+            //if (!IsClimbingStairSlope && EvaluateCollisionAhead(out Vector3 hitNormal, out float hitDistanceForContact))
+            //{
+            //    if (hitNormal.y < Config.MinGroundDotProduct)
+            //    {
+            //        Vector3 counterDirection = ProjectOnContactPlane(hitNormal).normalized;
+            //        Vector3 repulsionVelocity = -Vector3.Dot(counterDirection, _desiredVelocity) * counterDirection;
+            //        _desiredVelocity += repulsionVelocity;
+            //    }
+            //}
             ////
 
-            Vector3 xAxis = ProjectOnContactPlane(Vector3.right).normalized;
-            Vector3 zAxis = ProjectOnContactPlane(Vector3.forward).normalized;
+            Vector3 xAxis = Vector3.zero;
+            Vector3 zAxis = Vector3.zero;
+
+            if (Config.alwaysJumpStraightUpOnGround && _stepsSinceLastJump <= 2) // To prevent direction correction when jump starts
+            {
+                xAxis = Vector3.right;
+                zAxis = Vector3.forward;
+            }
+            else
+            {
+                xAxis = ProjectOnContactPlane(Vector3.right).normalized;
+                zAxis = ProjectOnContactPlane(Vector3.forward).normalized;
+            }
 
             Vector3 relativeVelocity = _currentVelocity - _connectionVelocity;
             float currentX = Vector3.Dot(relativeVelocity, xAxis);
@@ -321,7 +364,7 @@ namespace HeadChopping
 
         private void Jump()
         {
-            Vector3 jumpDirection;
+            Vector3 jumpDirection = Vector3.zero;
             bool onWall = false;
 
             if (OnGround || _timeSinceLastGrounded < Config.coyoteTime)
@@ -351,6 +394,17 @@ namespace HeadChopping
             jumpDirection = (jumpDirection + Vector3.up).normalized; // To allow interactions like: wall jumping chain, etc.
 
             float jumpHeight = _jumpPhase > 1 ? Config.airJumpDistance : (onWall ? Config.wallJumpDistance : Config.jumpDistance);
+            float jumpSpeed = ComputeJumpSpeed(jumpHeight, jumpDirection);
+
+            if (Config.clearVerticalSpeedOnJump)
+            {
+                _currentVelocity.y = 0.0f;
+            }
+
+            _currentVelocity += jumpDirection * jumpSpeed;
+        }
+        private float ComputeJumpSpeed(float jumpHeight, Vector3 jumpDirection)
+        {
             float gravity = _gravityAcceleration.y;
             float jumpSpeed = Mathf.Sqrt(-2f * gravity * jumpHeight);
             float alignedSpeed = Vector3.Dot(_currentVelocity, jumpDirection);
@@ -360,12 +414,7 @@ namespace HeadChopping
                 jumpSpeed = Mathf.Max(0.0f, jumpSpeed - alignedSpeed);
             }
 
-            if (Config.clearVerticalSpeedOnJump)
-            {
-                _currentVelocity.y = 0.0f;
-            }
-
-            _currentVelocity += jumpDirection * jumpSpeed;
+            return jumpSpeed;
         }
 
 
@@ -386,9 +435,9 @@ namespace HeadChopping
             // (Tomeu) 
             if (_currentVelocity.y < _gravityVelocity.y) // < because it is negative
             {
-                float colliderHeightOffset = _capsuleCollider.height / 2;
+                float colliderHeightOffset = GetBodyOffsetToFeet();
                 float distance = colliderHeightOffset + (-_currentVelocity.y * Time.deltaTime);
-                if (Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, distance, Config.probeMask, QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(GetPosition(), Vector3.down, out RaycastHit hit, distance, Config.probeMask, QueryTriggerInteraction.Ignore))
                 {
                     float penetrationDistance = distance - hit.distance;
                     float excessSpeedY = penetrationDistance / Time.deltaTime;
@@ -430,8 +479,8 @@ namespace HeadChopping
                 return false;
             }
 
-            float proveDistance = (_capsuleCollider.height / 2) + Config.groundProbeExtraDistance;
-            if (!Physics.Raycast(_rigidbody.position, Vector3.down, out RaycastHit hit, proveDistance, Config.probeMask, QueryTriggerInteraction.Ignore))
+            float probeDistance = GetBodyOffsetToFeet() + Config.groundProbeExtraDistance;
+            if (!Physics.Raycast(GetPosition(), Vector3.down, out RaycastHit hit, probeDistance, Config.probeMask, QueryTriggerInteraction.Ignore))
             {
                 //Debug.Log("NO HIT");
                 return false;
@@ -475,6 +524,19 @@ namespace HeadChopping
         }
 
 
+        private Vector3 GetPosition()
+        {
+            return _rigidbody.position;
+        }
+        private float GetBodyOffsetToFeet()
+        {
+            return (_capsuleCollider.height / 2) - _capsuleCollider.center.y;
+        }
+        private float GetColliderRadius()
+        {            
+            return _capsuleCollider.radius;
+        }
+
 
         private Vector3 ProjectOnContactPlane(Vector3 vector)
         {
@@ -482,11 +544,104 @@ namespace HeadChopping
         }
 
 
-
         public void PreventSnapToGround()
         {
             _stepsSinceLastJump -= 1;
         }
+
+
+
+        private void CheckStartClimbStairSlopes()
+        {
+            float desiredSpeed = _desiredVelocity.magnitude;
+            if (desiredSpeed < 0.01f)
+            {
+                return;
+            }
+
+            Vector3 currentPosition = GetPosition();
+            float bodyOffsetToFeet = GetBodyOffsetToFeet();
+            float colliderRadius = GetColliderRadius();
+
+            float initialForward_ProbeDistance = Config.maxStairSlopeHeight + colliderRadius;
+            Vector3 initialForward_ProbeDirection = _desiredVelocity / desiredSpeed;
+            Vector3 initialForward_ProbePosition = currentPosition;
+            initialForward_ProbePosition.y -= bodyOffsetToFeet - 0.01f;
+
+            if (!Physics.Raycast(initialForward_ProbePosition, initialForward_ProbeDirection, out RaycastHit initialForward_Hit, initialForward_ProbeDistance,
+                Config.probeMask, QueryTriggerInteraction.Ignore))
+            {
+                return;
+            }
+
+            float initialDownwards_ProbeDistance = Config.maxStairSlopeHeight;
+            Vector3 initialDownwards_ProbeDirection = Vector3.down;
+            Vector3 initialDownwards_ProbePosition = initialForward_Hit.point + (initialForward_ProbeDirection * 0.01f);
+            initialDownwards_ProbePosition.y += Config.maxStairSlopeHeight;
+            if (!Physics.Raycast(initialDownwards_ProbePosition, initialDownwards_ProbeDirection, out RaycastHit initialDownwards_Hit, initialDownwards_ProbeDistance,
+                Config.probeMask, QueryTriggerInteraction.Ignore))
+            {
+                return;
+            }
+
+            bool isSteep = Vector3.Dot(initialForward_Hit.normal, initialDownwards_Hit.normal) > 0.9f;
+            if (isSteep)
+            {
+                return;
+            }
+
+            float realSlopeHeight = initialDownwards_Hit.point.y - (currentPosition.y - bodyOffsetToFeet);
+            if (realSlopeHeight < 0.0f)
+            {
+                return;
+            }
+
+            float airDistanceToWall = initialForward_Hit.distance - colliderRadius;
+            float excessProbeDistance = Config.maxStairSlopeHeight - realSlopeHeight - colliderRadius;
+            if (airDistanceToWall + excessProbeDistance > realSlopeHeight + colliderRadius)
+            {
+                return;
+            }
+
+            //Debug.Log($"Detecting slope with height: {realSlopeHeight}");
+
+            Vector3 targetPositionOnSlopeTip = initialForward_Hit.point;
+            targetPositionOnSlopeTip += initialForward_ProbeDirection * 0.01f;
+            targetPositionOnSlopeTip.y = initialDownwards_Hit.point.y + bodyOffsetToFeet + 0.01f;
+            
+            _climbingStairSlopes = true;
+            _targetPositionOnSlopeTip = targetPositionOnSlopeTip;
+            _initialDirectionToSlopeTip = (_targetPositionOnSlopeTip - currentPosition).normalized;
+            _movementInputInitialSlopeClimb = _movementInput.normalized;
+        }
+
+        public void ApplyClimbStairSlopesVelocity()
+        {
+            if (!_climbingStairSlopes)
+            {
+                return;                
+            }
+
+            if (_stepsSinceLastJump < 1 || Vector3.Dot(_movementInputInitialSlopeClimb, _movementInput.normalized) < 0.9f)
+            {
+                _climbingStairSlopes = false;
+                return;
+            }
+
+            Vector3 currentPosition = GetPosition();
+            Vector3 toSlopeTip = _targetPositionOnSlopeTip - currentPosition;
+
+            bool reachedSlopeTip = Vector3.Dot(_initialDirectionToSlopeTip, toSlopeTip) < 0;
+            if (reachedSlopeTip)
+            {
+                //Debug.Log("Reached slope tip");
+                _climbingStairSlopes = false;
+                return;
+            }
+
+            _currentVelocity = toSlopeTip.normalized * Config.maxSpeed;
+        }
+
 
     }
 

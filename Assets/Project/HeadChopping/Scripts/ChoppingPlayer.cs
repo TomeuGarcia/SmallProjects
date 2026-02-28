@@ -5,7 +5,7 @@ using UnityEngine;
 namespace HeadChopping
 {
 
-    public class ChoppingPlayer : MonoBehaviour
+    public class ChoppingPlayer : MonoBehaviour, TriggerTeleporter.ITarget
     {
         [SerializeField] private FirstPersonCameraMovement _firstPersonCameraMovement;
         [SerializeField] private PhysicsMovement _physicsMovement;
@@ -15,6 +15,7 @@ namespace HeadChopping
         [SerializeField] private ParticleSystem _bloodParticlesPrefab;
         [SerializeField] private LayerMask _spawnBloodMask = -1;
 
+        private bool _previousOnGround = true;
 
         private void Awake()
         {
@@ -33,6 +34,8 @@ namespace HeadChopping
             {
                 SpawnBlood();
             }
+
+            DEBUG_TestGroundDetection();
         }
 
 
@@ -46,6 +49,31 @@ namespace HeadChopping
                 Quaternion spawnRotation = Quaternion.LookRotation(hit.normal);
                 Instantiate(_bloodParticlesPrefab, spawnPosition, spawnRotation);
             }
+        }
+
+
+        private void DEBUG_TestGroundDetection()
+        {
+            _physicsMovement.GetGroundedState(out bool onGround, out bool onSteep, out bool climbingStairSlopes);
+            if (!_previousOnGround && (onGround || climbingStairSlopes  /*|| onSteep*/))
+            {
+                _previousOnGround = true;
+                Debug.Log($"[PLAYER] Start Grounded:   onGround {onGround}   onSteep {onSteep}   climbingStairSlopes {climbingStairSlopes}");
+            }
+            if (_previousOnGround && (!onGround && !climbingStairSlopes /*&& !onSteep*/))
+            {
+                _previousOnGround = false;
+                Debug.Log($"[PLAYER] Start Air:   onGround {(onGround)}   onSteep {(onSteep)}   climbingStairSlopes {climbingStairSlopes}");
+            }
+        }
+
+
+
+        // Explicit Interfaces
+
+        void TriggerTeleporter.ITarget.RequestTeleport(Vector3 teleportDestinationPosition)
+        {
+            _physicsMovement.TeleportToPosition(teleportDestinationPosition, clearVelocity: true);
         }
     }
 
