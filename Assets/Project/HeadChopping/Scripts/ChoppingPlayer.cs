@@ -35,7 +35,7 @@ namespace HeadChopping
                 SpawnBlood();
             }
 
-            //DEBUG_TestGroundDetection();
+            DEBUG_TestGroundDetection();
         }
 
 
@@ -54,16 +54,23 @@ namespace HeadChopping
 
         private void DEBUG_TestGroundDetection()
         {
-            _physicsMovement.GetGroundedState(out bool onGround, out bool onSteep, out bool climbingStairSlopes);
+            _physicsMovement.GetAirState(out bool isGroundJumpRising, out bool isWallJumpRising, out bool isAirJumpRising, out bool isFalling);
+            if (isGroundJumpRising)  Debug.Log("Ground Jumping");
+            if (isWallJumpRising)  Debug.Log("Wall Jumping");
+            if (isAirJumpRising)  Debug.Log("Air Jumping");
+            if (isFalling)  Debug.Log("Falling");
+
+            return;
+            _physicsMovement.GetGroundedState(out bool onGround, out bool onSteep, out bool climbingStairSlopes, out bool isStandingOnColliderEdge);
             if (!_previousOnGround && (onGround || climbingStairSlopes  /*|| onSteep*/))
             {
                 _previousOnGround = true;
-                Debug.Log($"[PLAYER] Start Grounded:   onGround {onGround}   onSteep {onSteep}   climbingStairSlopes {climbingStairSlopes}");
+                Debug.Log($"[PLAYER] Start Grounded:   onGround {onGround}   onSteep {onSteep}   climbingStairSlopes {climbingStairSlopes}   isStandingOnColliderEdge {isStandingOnColliderEdge}");
             }
             if (_previousOnGround && (!onGround && !climbingStairSlopes /*&& !onSteep*/))
             {
                 _previousOnGround = false;
-                Debug.Log($"[PLAYER] Start Air:   onGround {(onGround)}   onSteep {(onSteep)}   climbingStairSlopes {climbingStairSlopes}");
+                Debug.Log($"[PLAYER] Start Air:   onGround {(onGround)}   onSteep {(onSteep)}   climbingStairSlopes {climbingStairSlopes}   isStandingOnColliderEdge {isStandingOnColliderEdge}");
             }
         }
 

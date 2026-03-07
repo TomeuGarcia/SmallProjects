@@ -9,6 +9,7 @@ namespace HeadChopping
     {
         private Transform _cameraTransform;
         private Timer _jumpInputBufferTimer;
+        private bool _jumpInputHeld;
         private float _movementInputForward;
         private float _movementInputRight;
         private bool _attackRequested;
@@ -21,6 +22,7 @@ namespace HeadChopping
             _cameraTransform = cameraTransform;
             _jumpInputBufferTimer = new Timer(duration: 0.15f);
             _jumpInputBufferTimer.SetFinished();
+            _jumpInputHeld = false;
             HideCursor();
         }
 
@@ -47,6 +49,7 @@ namespace HeadChopping
 
 
             _jumpInputBufferTimer.Update(Time.deltaTime);
+            _jumpInputHeld = Input.GetButton("Jump");
             if (Input.GetButtonDown("Jump"))
             {
                 _jumpInputBufferTimer.Clear();
@@ -81,7 +84,7 @@ namespace HeadChopping
 
 
 
-        void PhysicsMovement.IInputSource.GetInput(out Vector2 movementInput, out bool desiredJump)
+        void PhysicsMovement.IInputSource.GetInput(out Vector2 movementInput, out bool desireStartJumping, out bool desireKeepJumping)
         {
             Vector3 forwardDirection = _cameraTransform.forward;
             forwardDirection.y = 0f;
@@ -95,7 +98,8 @@ namespace HeadChopping
             movementInput.y = moveDirection.z;
             movementInput = Vector2.ClampMagnitude(movementInput, 1f);
 
-            desiredJump = !_jumpInputBufferTimer.HasFinished();
+            desireStartJumping = !_jumpInputBufferTimer.HasFinished();
+            desireKeepJumping = _jumpInputHeld;
         }
         void PhysicsMovement.IInputSource.OnJumpInputConsumed()
         {
