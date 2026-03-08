@@ -27,9 +27,10 @@ namespace HeadChopping
         [SerializeField, Range(0.0f, 89.0f)] private float _maxPitchDown = 45.0f;
         [SerializeField, Range(0.0f, 89.0f)] private float _maxPitchUp = 80.0f;
 
+        const float Clamp = 0.5f;
         private float _accumulatedYaw;
         private float _accumulatedPitch;
-        const float Clamp = 0.5f;
+        private float _timeSinceLastInputChange;
 
         private IInputSource _inputSource = null;
 
@@ -40,6 +41,7 @@ namespace HeadChopping
         {
             _accumulatedYaw = 0.0f;
             _accumulatedPitch = 0.0f;
+            _timeSinceLastInputChange = 0.0f;
         }
 
         public void AwakeConfigure(IInputSource inputSource)
@@ -52,10 +54,20 @@ namespace HeadChopping
             if (_inputSource == null) _inputSource = new DefaultInputSource();
         }
 
-        public void DoUpdate()
+        public void DoUpdate(float deltaTime)
         {
             _inputSource.GetInput(out float yawInput, out float pitchInput);
-            float deltaSensitivity = _sensitivity * Time.deltaTime;
+            bool inputChanged = !(yawInput + pitchInput < 0.001f);
+            if (inputChanged)
+            {
+                _timeSinceLastInputChange = 0.0f;
+            }
+            else
+            {
+                _timeSinceLastInputChange += deltaTime;
+            }
+
+            float deltaSensitivity = _sensitivity * deltaTime;
             float yawAnglesToAdd =   Mathf.Clamp(yawInput,   -Clamp, Clamp) * deltaSensitivity;
             float pitchAnglesToAdd = Mathf.Clamp(pitchInput, -Clamp, Clamp) * -deltaSensitivity;
 
@@ -75,6 +87,12 @@ namespace HeadChopping
 
             _cameraTransform.rotation = cameraRotation;
         }
+
+        public float GetTimeSinceLastInputChange()
+        {
+            return _timeSinceLastInputChange;
+        }
+
     }
 
 }

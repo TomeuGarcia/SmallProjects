@@ -57,7 +57,7 @@ namespace HeadChopping
             [SerializeField, Min(0.0f)] public float gravityMultiplier = 1.0f;
             [SerializeField, Min(0.0f)] public float coyoteTime = 0.2f;
             [Space(10)]
-            [SerializeField] public bool preventFallingFromColliderEdge = true;
+            [SerializeField, Tooltip("More expensive, but better results")] public bool preventFallingFromColliderEdge = true;
             [SerializeField, Range(0, 90)] private float _maxGroundAngle = 50.0f;
             [SerializeField, Min(0.0f)] public float speedThresholdToIgnoreSnap = 100.0f;
             [SerializeField, Min(0.0f)] public float groundProbeExtraDistance = 1.0f;
@@ -85,6 +85,7 @@ namespace HeadChopping
 
         private IInputSource _inputSource;
         private bool _autoUpdate = true;
+        private bool _enabled = true;
 
         private Rigidbody _connectedRigidbody;
         private Rigidbody _previousConnectedRigidbody;
@@ -112,7 +113,7 @@ namespace HeadChopping
         private Vector3 _gravityAccelerationKeepJumping;
         private Vector3 _gravityVelocity;
 
-        public Configuration Config => _configuration;
+        private Configuration Config => _configuration;
         private bool OnGround => _groundContactCount > 0;
         private bool OnSteep => _steepContactCount > 0;
         private bool _previousOnGround;
@@ -172,6 +173,8 @@ namespace HeadChopping
         }
         public void DoUpdate()
         {
+            if (!_enabled) return;
+
             _inputSource.GetInput(out _movementInput, out bool desireStartJumping, out bool desireKeepJumping);
 
             _desiredVelocity = new Vector3(_movementInput.x, 0f, _movementInput.y) * Config.maxSpeed;
@@ -182,6 +185,15 @@ namespace HeadChopping
 
         private void FixedUpdate()
         {
+            if (_autoUpdate)
+            {
+                DoFixedUpdate();
+            }
+        }
+        public void DoFixedUpdate()
+        {
+            if (!_enabled) return;
+
             UpdateState();
             CheckStartClimbStairSlopes();
             AdjustVelocity();
@@ -206,6 +218,22 @@ namespace HeadChopping
         }
 
 
+        public void SetEnabled(bool enabled)
+        {
+            if (_enabled == enabled) return;
+
+            _enabled = enabled;
+            if (!enabled)
+            {
+                ClearState();
+                ClearVelocity();
+            }
+        }
+
+        public Configuration GetConfiguration()
+        {
+            return _configuration;
+        }
 
         public void TeleportToPosition(Vector3 position, bool clearVelocity)
         {
@@ -213,7 +241,7 @@ namespace HeadChopping
             _rigidbody.MovePosition(position);
             if (clearVelocity)
             {
-                _currentVelocity = Vector3.zero;
+                ClearVelocity();
             }
         }
 
@@ -224,6 +252,7 @@ namespace HeadChopping
             isClimbingStairSlopes = _isClimbingStairSlopes;
             isStandingOnColliderEdge = _isStandingOnColliderEdge;
         }
+
         public void GetAirState(out bool isGroundJumpRising, out bool isWallJumpRising, out bool isAirJumpRising, out bool isFalling)
         {
             isFalling = isGroundJumpRising = isWallJumpRising = isAirJumpRising = false;
@@ -248,11 +277,23 @@ namespace HeadChopping
                 isFalling = !(OnGround || _wasSnappedToGround);
             }
         }
+
         public void GetNormals(out Vector3 contactNormal, out Vector3 wallNormal)
         {
             contactNormal = _contactNormal;
             wallNormal = _steepNormal;
         }
+
+        public void GetVelocity(out Vector3 relativeVelocity)
+        {
+            relativeVelocity = _currentVelocity - _connectionVelocity;
+        }
+
+        public void PreventSnapToGround()
+        {
+            _stepsSinceLastJump -= 1;
+        }
+
 
 
         private void OnCollisionEnter(Collision collision)
@@ -267,6 +308,8 @@ namespace HeadChopping
 
         private void EvaluateCollision(Collision collision)
         {
+            if (!_enabled) return;
+
             for (int i = 0; i < collision.contactCount; i++)
             {
                 Vector3 normal = collision.GetContact(i).normal;
@@ -375,6 +418,10 @@ namespace HeadChopping
                     Vector3 counterDirection = ProjectOnContactPlane(hitNormal).normalized;
                     Vector3 repulsionVelocity = -Vector3.Dot(counterDirection, _desiredVelocity) * counterDirection;
                     _desiredVelocity += repulsionVelocity;
+                }
+                else
+                {
+                    _contactNormal = hitNormal;
                 }
             }
             ////
@@ -784,9 +831,9 @@ namespace HeadChopping
         }
 
 
-        public void PreventSnapToGround()
+        private void ClearVelocity()
         {
-            _stepsSinceLastJump -= 1;
+            _currentVelocity = Vector3.zero;
         }
 
 
@@ -895,7 +942,7 @@ namespace HeadChopping
         }
 
 
-        public void ApplyClimbStairSlopesVelocity()
+        private void ApplyClimbStairSlopesVelocity()
         {
             if (!_isClimbingStairSlopes)
             {

@@ -8,6 +8,7 @@ namespace HeadChopping
     public class ChoppingPlayer : MonoBehaviour, TriggerTeleporter.ITarget
     {
         [SerializeField] private FirstPersonCameraMovement _firstPersonCameraMovement;
+        [SerializeField] private CameraAnimator _cameraAnimator;
         [SerializeField] private PhysicsMovement _physicsMovement;
         private ChoppingPlayerInputs _inputs;
 
@@ -15,6 +16,7 @@ namespace HeadChopping
         [SerializeField] private ParticleSystem _bloodParticlesPrefab;
         [SerializeField] private LayerMask _spawnBloodMask = -1;
 
+        private float _timeSinceLastMovement;
         private bool _previousOnGround = true;
 
         private void Awake()
@@ -22,13 +24,14 @@ namespace HeadChopping
             _inputs = new ChoppingPlayerInputs(_firstPersonCameraMovement.CameraTransform);
             _firstPersonCameraMovement.AwakeConfigure(_inputs);
             _physicsMovement.AwakeConfigure(_inputs, autoUpdate: false);
+            _timeSinceLastMovement = 0.0f;
         }
 
         private void Update()
         {
             _inputs.Update();
-            _firstPersonCameraMovement.DoUpdate();
             _physicsMovement.DoUpdate();
+            UpdateTimeSinceLastMovement();
 
             if (_inputs.AttackRequested())
             {
@@ -36,6 +39,19 @@ namespace HeadChopping
             }
 
             DEBUG_TestGroundDetection();
+        }
+
+        private void LateUpdate()
+        {
+            _firstPersonCameraMovement.DoUpdate(Time.deltaTime);
+
+            float timeSinceLastInputChange = Mathf.Min(_firstPersonCameraMovement.GetTimeSinceLastInputChange(), _timeSinceLastMovement);
+            _cameraAnimator.DoUpdate(Time.deltaTime, timeSinceLastInputChange);
+        }
+
+        private void FixedUpdate()
+        {
+            _physicsMovement.DoFixedUpdate();
         }
 
 
@@ -51,9 +67,27 @@ namespace HeadChopping
             }
         }
 
+        private void UpdateTimeSinceLastMovement()
+        {
+            _physicsMovement.GetVelocity(out Vector3 relativeVelocity);
+            bool moved = (relativeVelocity.x + relativeVelocity.y + relativeVelocity.z) > 0.0f;
+            if (moved)
+            {
+                _timeSinceLastMovement = 0.0f;
+            }
+            else
+            {
+                _timeSinceLastMovement += Time.deltaTime;
+            }
+        }
 
         private void DEBUG_TestGroundDetection()
         {
+            return;
+            _physicsMovement.GetVelocity(out Vector3 relativeVelocity);
+            Debug.Log(relativeVelocity);
+
+            return;
             _physicsMovement.GetAirState(out bool isGroundJumpRising, out bool isWallJumpRising, out bool isAirJumpRising, out bool isFalling);
             if (isGroundJumpRising)  Debug.Log("Ground Jumping");
             if (isWallJumpRising)  Debug.Log("Wall Jumping");
