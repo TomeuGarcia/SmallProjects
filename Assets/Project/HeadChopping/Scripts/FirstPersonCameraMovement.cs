@@ -23,7 +23,7 @@ namespace HeadChopping
 
 
         [SerializeField] private Transform _cameraTransform;
-        [SerializeField, Min(1.0f)] private float _sensitivity = 1000.0f;
+        [SerializeField, Min(1.0f)] private float _sensitivity = 500.0f;
         [SerializeField, Range(0.0f, 89.0f)] private float _maxPitchDown = 45.0f;
         [SerializeField, Range(0.0f, 89.0f)] private float _maxPitchUp = 80.0f;
 

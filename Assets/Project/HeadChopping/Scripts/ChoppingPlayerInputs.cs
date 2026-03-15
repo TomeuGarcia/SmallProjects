@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 
 
@@ -7,6 +8,8 @@ namespace HeadChopping
 
     public class ChoppingPlayerInputs : FirstPersonCameraMovement.IInputSource, PhysicsMovement.IInputSource
     {
+        private InputActions_HeadChopping _inputActions;
+
         private Transform _cameraTransform;
         private Timer _jumpInputBufferTimer;
         private bool _jumpInputHeld;
@@ -24,6 +27,14 @@ namespace HeadChopping
             _jumpInputBufferTimer.SetFinished();
             _jumpInputHeld = false;
             HideCursor();
+
+            _inputActions = new InputActions_HeadChopping();
+            _inputActions.Enable();
+        }
+
+        public void Cleanup()
+        {
+            _inputActions.Disable();
         }
 
 
@@ -45,20 +56,22 @@ namespace HeadChopping
                     _canMoveCamera = true;
                     return;
                 }
-            }                      
+            }
 
-
+            
             _jumpInputBufferTimer.Update(Time.deltaTime);
-            _jumpInputHeld = Input.GetButton("Jump");
-            if (Input.GetButtonDown("Jump"))
+            _jumpInputHeld = _inputActions.Player.Jump.IsPressed(); //Input.GetButton("Jump");
+            if (_inputActions.Player.Jump.WasPressedThisFrame() /*Input.GetButtonDown("Jump")*/)
             {
                 _jumpInputBufferTimer.Clear();
             }
 
-            _movementInputForward = Input.GetKey(KeyCode.W) ? 1 : (Input.GetKey(KeyCode.S) ? -1 : 0);
-            _movementInputRight = Input.GetKey(KeyCode.D) ? 1 : (Input.GetKey(KeyCode.A) ? -1 : 0);
+            
+            Vector2 movementInput = _inputActions.Player.Movement.ReadValue<Vector2>();
+            _movementInputForward = Mathf.Round(movementInput.y);// Input.GetKey(KeyCode.W) ? 1 : (Input.GetKey(KeyCode.S) ? -1 : 0);
+            _movementInputRight = Mathf.Round(movementInput.x);// Input.GetKey(KeyCode.D) ? 1 : (Input.GetKey(KeyCode.A) ? -1 : 0);
 
-            _attackRequested = Input.GetKeyDown(KeyCode.Mouse0);
+            _attackRequested = _inputActions.Player.Attack.WasPressedThisFrame();// Input.GetKeyDown(KeyCode.Mouse0);
         }
 
 
@@ -76,10 +89,28 @@ namespace HeadChopping
         }
 
 
+
         void FirstPersonCameraMovement.IInputSource.GetInput(out float yawInput, out float pitchInput)
         {
-            yawInput =   _canMoveCamera ? Input.GetAxis("Mouse X") : 0.0f;
-            pitchInput = _canMoveCamera ? Input.GetAxis("Mouse Y") : 0.0f;
+            yawInput = 0.0f;
+            pitchInput = 0.0f;
+            if (!_canMoveCamera)
+            {
+                return;
+            }
+
+            Vector2 lookInput = _inputActions.Player.Look.ReadValue<Vector2>();
+            if (lookInput.sqrMagnitude > 0.01f)
+            {
+                yawInput += lookInput.x;
+                pitchInput += lookInput.y;
+            }
+            else
+            {
+                // Using old "input system" for Mouse because it feels better
+                yawInput += Input.GetAxis("Mouse X");   
+                pitchInput += Input.GetAxis("Mouse Y");
+            }
         }
 
 

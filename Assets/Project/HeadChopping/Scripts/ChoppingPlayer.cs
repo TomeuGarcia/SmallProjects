@@ -8,7 +8,6 @@ namespace HeadChopping
     public class ChoppingPlayer : MonoBehaviour, TriggerTeleporter.ITarget
     {
         [SerializeField] private FirstPersonCameraMovement _firstPersonCameraMovement;
-        [SerializeField] private CameraAnimator _cameraAnimator;
         [SerializeField] private PhysicsMovement _physicsMovement;
         private ChoppingPlayerInputs _inputs;
 
@@ -25,6 +24,11 @@ namespace HeadChopping
             _firstPersonCameraMovement.AwakeConfigure(_inputs);
             _physicsMovement.AwakeConfigure(_inputs, autoUpdate: false);
             _timeSinceLastMovement = 0.0f;
+        }
+
+        private void OnDestroy()
+        {
+            _inputs.Cleanup();
         }
 
         private void Update()
@@ -46,7 +50,6 @@ namespace HeadChopping
             _firstPersonCameraMovement.DoUpdate(Time.deltaTime);
 
             float timeSinceLastInputChange = Mathf.Min(_firstPersonCameraMovement.GetTimeSinceLastInputChange(), _timeSinceLastMovement);
-            _cameraAnimator.DoUpdate(Time.deltaTime, timeSinceLastInputChange);
         }
 
         private void FixedUpdate()
