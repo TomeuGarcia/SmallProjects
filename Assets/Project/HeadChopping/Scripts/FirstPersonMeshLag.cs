@@ -37,16 +37,20 @@ namespace HeadChopping
                 [SerializeField, Min(0)] public float extraAngleMultiplierMaxTime = 0.1f;
                 [SerializeField, Min(0)] public float maxTime = 1.0f;
                 [Space(5)]
+                [SerializeField, Min(0)] public float sidewaysDisplacementSpeedThreshold = 0.1f;
                 [SerializeField, Min(0)] public float sidewaysDisplacementMultiplier = 100.0f;
                 [SerializeField, Min(0)] public float sidewaysDisplacementChangeMaxSpeed = 80.0f;
+                [Space(2)]
+                [SerializeField, Min(0)] public float upwardsDisplacementSpeedThreshold = 0.1f;
                 [SerializeField, Min(0)] public float upwardsDisplacementMultiplier = 1.0f;
                 [Space(5)]
                 [SerializeField, Min(0)] public float rotationChangeMaxSpeed = 200.0f;
             }
 
             [System.Serializable]
-            public class DisableConfiguration
+            public class DisabledConfiguration
             {
+                [SerializeField, Min(0)] public float dampSpeedPosition = 3000.0f;
                 [SerializeField, Min(0)] public float dampSpeedRotation = 300.0f;
                 [SerializeField, Min(0)] public float dampSpeedTilt = 300.0f;
             }
@@ -55,7 +59,8 @@ namespace HeadChopping
             [SerializeField] public PositionConfiguration position;
             [SerializeField] public RotationConfiguration rotation;
             [SerializeField] public TiltConfiguration tilt;
-            [SerializeField] public DisableConfiguration disable;
+            [Space(5)]
+            [SerializeField] public DisabledConfiguration disabled;
 
             public void Validate()
             {
@@ -79,7 +84,6 @@ namespace HeadChopping
         private bool _exitedDeadZone;
         private float _timestamp_exitedDeadZone;
 
-        private bool _isMoving;
         private int _framesIsMoving;
         private float _timestamp_startedMoving;
 
@@ -108,13 +112,17 @@ namespace HeadChopping
             _exitedDeadZone = false;
             _timestamp_exitedDeadZone = Time.timeSinceLevelLoad;
 
-            _isMoving = false;
             _framesIsMoving = 0;
             _timestamp_startedMoving = Time.timeSinceLevelLoad;
 
             _currentTiltAngle = 0.0f;
         }
 
+
+        private bool IsPositionDisabled()
+        {
+            return false;
+        }
         private bool IsRotationDisabled()
         {
             return false;
@@ -168,6 +176,15 @@ namespace HeadChopping
         {
             Vector3 currentPosition = _transformToUpdate.position;
 
+            if (IsPositionDisabled())
+            {
+                newPosition = Vector3.Lerp(currentPosition, targetPosition, deltaTime * _configuration.disabled.dampSpeedPosition);
+                moved = false;
+                _framesIsMoving = 0;
+                return;
+            }
+
+
             float positionT = deltaTime * _configuration.position.dampSpeed;
             newPosition = Vector3.Lerp(currentPosition, targetPosition, positionT);
 
@@ -177,23 +194,16 @@ namespace HeadChopping
             if (!moved)
             {
                 newPosition = targetPosition;
-
-                if (_isMoving)
-                {
-                    _isMoving = false;
-                }
                 _framesIsMoving = 0;
             }
             else
             {
-                if (!_isMoving)
+                if (_framesIsMoving == 0)
                 {
-                    _isMoving = true;
                     _timestamp_startedMoving = Time.timeSinceLevelLoad;
                 }
                 _framesIsMoving += 1;
-            }
-            
+            }            
         }
 
         private void UpdateTransform_Rotation(Quaternion targetRotation, float deltaTime, bool moved, out Quaternion newRotation)
@@ -202,7 +212,7 @@ namespace HeadChopping
 
             if (IsRotationDisabled())
             {
-                newRotation = Quaternion.Slerp(currentRotation, targetRotation, deltaTime * _configuration.disable.dampSpeedRotation);
+                newRotation = Quaternion.Slerp(currentRotation, targetRotation, deltaTime * _configuration.disabled.dampSpeedRotation);
                 return;
             }
 
@@ -246,7 +256,7 @@ namespace HeadChopping
 
             if (IsTiltDisabled())
             {
-                newTiltRotation = Quaternion.Slerp(currentTiltRotation, Quaternion.identity, deltaTime * _configuration.disable.dampSpeedTilt);
+                newTiltRotation = Quaternion.Slerp(currentTiltRotation, Quaternion.identity, deltaTime * _configuration.disabled.dampSpeedTilt);
                 return;
             }
 
