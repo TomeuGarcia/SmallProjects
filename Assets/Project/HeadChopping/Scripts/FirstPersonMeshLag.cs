@@ -14,6 +14,8 @@ namespace HeadChopping
             [System.Serializable]
             public class PositionConfiguration
             {
+                [SerializeField] public bool forceDisabled;
+                [Space(5)]
                 [SerializeField, Min(0)] public float dampSpeed = 3000.0f;                
                 [SerializeField, Min(0)] public float sqrDistanceToDetectMovement = 0.00001f;                
             }
@@ -21,6 +23,10 @@ namespace HeadChopping
             [System.Serializable]
             public class RotationConfiguration
             {
+                [SerializeField] public bool forceDisabled;
+                [Space(5)]
+                [SerializeField, Min(0)] public float dampTime = 0.3f;
+                [Space(5)]
                 [SerializeField, Min(0)] public float dampSpeed = 10.0f;
                 [SerializeField, Min(0)] public float deadZoneAngleStart = 5.0f;
                 [SerializeField, Min(0)] public float deadZoneAngleFinish = 1.0f;
@@ -30,8 +36,12 @@ namespace HeadChopping
             [System.Serializable]
             public class TiltConfiguration
             {
+                [SerializeField] public bool forceDisabled;
+                [Space(5)]
                 [SerializeField] public Vector3 localRotationAxis = Vector3.back;
                 [SerializeField, Min(0)] public float dampSpeed = 10.0f;
+                [SerializeField, Min(0)] public float angleDampTime = 0.3f;
+                [Space(5)]
                 [SerializeField, Min(0)] public float angleChangeSpeed = 200.0f;
                 [SerializeField, Min(0)] public float baseAngleMultiplier = 0.02f;
                 [SerializeField, Min(0)] public float extraAngleMultiplierMaxTime = 0.1f;
@@ -88,7 +98,7 @@ namespace HeadChopping
         private float _timestamp_startedMoving;
 
         private float _currentTiltAngle;
-
+        private float _tiltAngleDampVelocity;
 
         private ICinemachineCamera CinemachineCameraToTrack => _cinemachineCameraToTrack;
 
@@ -116,20 +126,21 @@ namespace HeadChopping
             _timestamp_startedMoving = Time.timeSinceLevelLoad;
 
             _currentTiltAngle = 0.0f;
+            _tiltAngleDampVelocity = 0.0f;
         }
 
 
         private bool IsPositionDisabled()
         {
-            return false;
+            return _configuration.position.forceDisabled;
         }
         private bool IsRotationDisabled()
         {
-            return false;
+            return _configuration.rotation.forceDisabled;
         }
         private bool IsTiltDisabled()
         {
-            return false;
+            return _configuration.tilt.forceDisabled;
         }
 
 
@@ -216,7 +227,6 @@ namespace HeadChopping
                 return;
             }
 
-
             float angleToTarget = Quaternion.Angle(currentRotation, targetRotation);
             
             if (_exitedDeadZone && angleToTarget < _configuration.rotation.deadZoneAngleFinish)
@@ -245,9 +255,8 @@ namespace HeadChopping
 
             float rotationT = deltaTime * _configuration.rotation.dampSpeed;
             rotationT *= timeMult;
-            newRotation = Quaternion.Slerp(currentRotation, targetRotation, rotationT);                      
+            newRotation = Quaternion.Slerp(currentRotation, targetRotation, rotationT);
         }
-
 
         private void UpdateTilit(Vector3 currentPosition, Vector3 newPosition, Quaternion currentRotation, Quaternion newRotation, 
             float deltaTime, out Quaternion newTiltRotation)
@@ -277,7 +286,10 @@ namespace HeadChopping
             float sidewaysDisplacement = Vector3.Dot(displacement, _transformToUpdate.right);
             float sidewaysSpeed = sidewaysDisplacement / deltaTime;
 
-            if (Mathf.Abs(tiltAngle) < 0.0000001f  && Mathf.Abs(sidewaysSpeed) > 0.1f) // Use position change instead
+            float tiltAngleAbs = Mathf.Abs(tiltAngle);
+            float tiltAngleSign = Mathf.Sign(tiltAngle);
+
+            if (tiltAngleAbs < 0.0000001f && Mathf.Abs(sidewaysSpeed) > 0.1f) // Use position change instead
             {
                 angleMultiplier = _configuration.tilt.baseAngleMultiplier;
                 timeMult = Mathf.Clamp01((Time.timeSinceLevelLoad - _timestamp_startedMoving) / _configuration.tilt.maxTime);
@@ -288,6 +300,7 @@ namespace HeadChopping
                 tiltAngle *= angleMultiplier;
             }
 
+            tiltAngle = Mathf.SmoothDamp(_currentTiltAngle, tiltAngle, ref _tiltAngleDampVelocity, _configuration.tilt.angleDampTime);
 
             _currentTiltAngle = Mathf.MoveTowards(_currentTiltAngle, tiltAngle, deltaTime * _configuration.tilt.angleChangeSpeed);
             Quaternion targetTiltRotation = Quaternion.AngleAxis(_currentTiltAngle, _configuration.tilt.localRotationAxis);

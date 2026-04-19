@@ -16019,24 +16019,33 @@ MonoBehaviour:
   _testingVSync: 1
   _configuration:
     position:
+      forceDisabled: 1
       dampSpeed: 3000
       sqrDistanceToDetectMovement: 0.00001
     rotation:
+      forceDisabled: 1
+      dampTime: 0.3
       dampSpeed: 10
-      deadZoneAngleStart: 25
+      deadZoneAngleStart: 15
       deadZoneAngleFinish: 1
       exitDeadZoneTimeForFullSpeed: 0.25
     tilt:
+      forceDisabled: 0
       localRotationAxis: {x: 0, y: 0, z: -1}
       dampSpeed: 10
-      angleChangeSpeed: 280
-      displacementMultiplier: 100
-      displacementChangeMaxSpeed: 80
-      rotationChangeMaxSpeed: 200
-      baseAngleMultiplier: 0.02
-      extraAngleMultiplierMaxTime: 0.1
+      angleDampTime: 0.2
+      angleChangeSpeed: 90
+      baseAngleMultiplier: 0.01
+      extraAngleMultiplierMaxTime: 0.08
       maxTime: 1
-    disable:
+      sidewaysDisplacementSpeedThreshold: 0.1
+      sidewaysDisplacementMultiplier: 100
+      sidewaysDisplacementChangeMaxSpeed: 80
+      upwardsDisplacementSpeedThreshold: 0.1
+      upwardsDisplacementMultiplier: 1
+      rotationChangeMaxSpeed: 200
+    disabled:
+      dampSpeedPosition: 3000
       dampSpeedRotation: 300
       dampSpeedTilt: 300
 --- !u!1 &1937876598
